@@ -88,6 +88,16 @@ public class User {
 		
 		//inserting data
 		userCreation(first_name, last_name, address, city, state, zip, phone, email, userId, pwd, card_type, card_number, isCard);
+		
+		System.out.println("Name:    		    " + first_name + last_name);
+		System.out.println("Address: 		    " + address);
+		System.out.println("City:   	        " + city);
+		System.out.println("Phone    		    " + phone);
+		System.out.println("Email:              " + email);
+		System.out.println("UserID:             " + userId);
+		System.out.println("Credit CardType:    " + card_type);
+		System.out.println("Credit Card Number: " + card_number);
+		
 	}
 	
 	public void accountLogin()
@@ -160,10 +170,6 @@ public class User {
 	{
 		try{
 			Connection con = getConnection();
-			//creating statement 
-			 Statement stmt = con.createStatement();
-			 //System.out.println(stmt);
-			
 			PreparedStatement pstmt = con.prepareStatement("INSERT INTO MEMBERS(fname, lname, address, city, state, zip, phone, email, userid, password, creditcardtype, creditcardnumber)"
 					+ " VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
 			
