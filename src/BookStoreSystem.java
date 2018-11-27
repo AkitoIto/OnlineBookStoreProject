@@ -24,6 +24,8 @@ public class BookStoreSystem
 		String cardNum = null;
 		Scanner input = new Scanner(System.in);
 		int orderNum = 1;
+		//make user object
+		User user = new User(null,null,null,null,null, 0, null, null, null, null, null, null);
 		
 		//Login/Registration Menu
 		while(!loginMenu.equals("q"))
@@ -65,28 +67,25 @@ public class BookStoreSystem
 							ResultSet rs = stmt.executeQuery();
 							while(rs.next())
 							{
-								this.firstName = rs.getString(1);
-								this.lastName = rs.getString(2);
-								this.address = rs.getString(3);
-								this.city = rs.getString(4);
-								this.state = rs.getString(5);
-								this.zip = rs.getInt(6);
-								this.phone = rs.getString(7);
-								this.email = rs.getString(8);
-								this.cardType = rs.getString(11);
-								this.cardNum = rs.getString(12);
+								firstName = rs.getString(1);
+								lastName = rs.getString(2);
+								address = rs.getString(3);
+								city = rs.getString(4);
+								state = rs.getString(5);
+								zip = rs.getInt(6);
+								phone = rs.getString(7);
+								email = rs.getString(8);
+								cardType = rs.getString(11);
+								cardNum = rs.getString(12);
 							}
 						}
 						catch(Exception e)
 						{
 							
 						}
-						
-					}
-					
-
-					//user.accountLogin();
-				}
+						//make user instance
+						user = new User(firstName, lastName, address, city, state, zip, phone, email, userId, pwd, cardType, cardNum);
+				  }//end nested if
 				
 				//new member registration
 				else if(loginMenu.equals("2"))
@@ -122,14 +121,13 @@ public class BookStoreSystem
 					
 					//if a customer do not want to store credit card information, it was stored null initially
 					
-					User user = new User(firstName, lastName, address, city, state, zip, phone, email, userId, pwd, cardType, cardNum);
+					//make user instance
+					user = new User(firstName, lastName, address, city, state, zip, phone, email, userId, pwd, cardType, cardNum);
 					user.registration();
 					String showInfo = user.toString();
 					System.out.println(showInfo);
-				}
-			   }
-		    }
-				/*
+				}//end nested else if
+		    
 				//entering member menu
 				int menu = 0;
 				while(menu != 8)
@@ -154,23 +152,21 @@ public class BookStoreSystem
 				    menu = input.nextInt();
 				    input.nextLine();
 				   
-				    //getting current user's id
-				   // String id = user.getId();
 				    switch(menu)
 				    {
 				      	case 1:
-				      		//browse(id);
+				      		 browse(user.getId());
 				    	    break;
 				      	case 2:
 				      		searchByAuthor();
 				      		break;
 				      	case 3:
-				      		//viewEditShoppingCart(user);
+				      		 viewEditShoppingCart(user);
 				      		break;
 				      	case 4:
 				      		break;
 				      	case 5: 
-				      		//checkOut(user, orderNum);
+				      		 checkOut(user, orderNum);
 				      		break;
 				      	case 6:
 				      		break;
@@ -182,6 +178,7 @@ public class BookStoreSystem
 				    }//end switch
 				}//end while
 			}//end if
+			
 			else if(loginMenu.equals("q"))
 			{
 				//end of the program
@@ -189,17 +186,17 @@ public class BookStoreSystem
 			else
 			{
 				System.out.println("Please select the valid option");	
-			}*/
-		
+			}
 		}//end while*/
     }//end main
 
-//this method checks if login was successful or not
-	public boolean loginCheck(String userId, String pwd)
+	
+	
+	//checks if login was successful or not
+	public static boolean loginCheck(String userId, String pwd)
 	{
 		try
 		{
-		
 			Connection con = getConnection();
 			PreparedStatement stmt = con.prepareStatement("select password from MEMBERS where userId = ?");
 			
@@ -226,8 +223,6 @@ public class BookStoreSystem
 				System.out.println("This user id does not exist, please type again");
 				return false;
 			}
-			
-	   
 	   }
 		catch(Exception e)
 		{
@@ -236,11 +231,40 @@ public class BookStoreSystem
 		}
 	}
 	
+	//checks if entered card information is valid of not
+	 public static boolean isCardValid(String cardType, String cardNum)
+	 {
+			if(cardType.equals("amex") || cardType.equals("visa"))
+			{
+				if(cardNum.length() != 14)
+				{
+					System.out.println("Card number length has to be 14");
+					return false;
+				}
+				else
+					return true;
+			}
+		 else
+		 	{
+				 if(cardNum.length() != 14)
+				{
+				   System.out.println("Credit card type must be amex or visa");
+				   System.out.println("Card number length has to be 14");
+					return false;
+				}
+				else
+				 {
+					System.out.println("Credit card type must be amex or visa");
+					return false;
+				 }
+		   }
+	  }
+			
+			
 	
-
+	//browse by subject menu
 	public static void browse(String userId)
 	{
-		
 		Scanner input = new Scanner(System.in);
 		String option = "3";
 		
@@ -338,6 +362,7 @@ public class BookStoreSystem
 	  }
 	}
 	
+	//search by author or title menu
 	public static void searchByAuthor()
 	{
 	   Scanner input = new Scanner(System.in);
@@ -407,6 +432,7 @@ public class BookStoreSystem
 		}//end while
 	}
 	
+	//view or edit shopping cart menu
 	public static void viewEditShoppingCart(User user)
 	{
 		String menu = "";
@@ -452,8 +478,9 @@ public class BookStoreSystem
 	  }while(!menu.equals("q"));
 	}
 	
+	//check order status menu
 	
-	
+	//check out menu
 	public static void checkOut(User user, int orderNum)
 	{
 		//variable for new shipping address
@@ -527,35 +554,11 @@ public class BookStoreSystem
 		}//end if
 	}
 	
-	//this method check if entered card information is valid of not
-	 public static boolean isCardValid(String cardType, String cardNum)
-		{
-			  if(cardType.equals("amex") || cardType.equals("visa"))
-			  {
-					if(cardNum.length() != 14)
-					{
-						System.out.println("Card number length has to be 14");
-						return false;
-					}
-					else
-						return true;
-			  }
-			  else
-			  {
-				  if(cardNum.length() != 14)
-					{
-					   System.out.println("Credit card type must be amex or visa");
-					   System.out.println("Card number length has to be 14");
-					   return false;
-					}
-				  else
-				  {
-					  System.out.println("Credit card type must be amex or visa");
-					  return false;
-				  }
-			  }
-		}
-		
+	//one click order menu
+	
+	//view/edit personal information menu
+	
+	
 	
 	public static Connection getConnection()
 	{

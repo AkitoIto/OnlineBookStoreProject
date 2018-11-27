@@ -49,96 +49,7 @@ public class User {
 				+"Credit Card Number: " + this.cardNum + "\n";
 	}
 	
-	//logins account
-	public void accountLogin()
-	{
-		boolean isValid = false;
-		Scanner input = new Scanner(System.in);
-		while(!isValid)
-		{
-			System.out.println("Welcome to the Online Book Store"); 
-			System.out.println("         Login page");
-			System.out.print("Enter the User ID: ");
-			userId = input.nextLine(); 
-			System.out.print("Enter password: ");
-			pwd = input.nextLine(); 
-			
-			isValid = loginCheck(userId,pwd);		
-		}
-		
-		System.out.println("You have logined successfully");
-		//if login successful get all attributes for this user object
-		try
-		{
-			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("SELECT * FROM MEMBERS WHERE USERID = '" + userId + "'");
-			ResultSet rs = stmt.executeQuery();
-			while(rs.next())
-			{
-				this.firstName = rs.getString(1);
-				this.lastName = rs.getString(2);
-				this.address = rs.getString(3);
-				this.city = rs.getString(4);
-				this.state = rs.getString(5);
-				this.zip = rs.getInt(6);
-				this.phone = rs.getString(7);
-				this.email = rs.getString(8);
-				this.cardType = rs.getString(11);
-				this.cardNum = rs.getString(12);
-			}
-		}
-		catch(Exception e)
-		{
-			
-		}
-		
-	}
 	
-
-	//this method checks if login was successful or not
-	public boolean loginCheck(String userId, String pwd)
-	{
-		try
-		{
-		
-			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("select password from MEMBERS where userId = ?");
-			
-			stmt.setString(1, userId);
-			
-			ResultSet rs = stmt.executeQuery();
-			
-			//check if a user ID exists in database
-			if(rs.next()){
-		  	
-				while(rs.next())
-				{
-					String password = rs.getString(1);
-			 
-					if(password.equals(pwd))
-						return true;
-					else
-					 return false;
-				 }
-				
-				 return true;
-			}
-			else
-			{
-				System.out.println("This user id does not exist, please type again");
-				return false;
-			}
-			
-	   
-	   }
-		catch(Exception e)
-		{
-			System.out.println(e);
-			return false;
-		}
-	}
-	
-
 	//This method check if a user has a card information 
 	public boolean checkIfCard()
 	{
@@ -243,6 +154,7 @@ public class User {
 		}
 		
 	}
+	
 	public void updateAddress()
 	{
 		try
