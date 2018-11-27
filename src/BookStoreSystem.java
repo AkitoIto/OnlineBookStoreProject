@@ -2,16 +2,21 @@ import java.sql.*;
 import java.util.*;
 
 //basic user interface
-public class BookStoreSystem {
+public class BookStoreSystem 
+{
 
-	public static void main(String[] args){
+	public static void main(String[] args)
+	{
 		//login option for users
-		String login_menu = "z";
+		String loginMenu = "z";
 		Scanner input = new Scanner(System.in);
 		User user = new User();
+		int orderNum = 1;
 		
+	  
 		//Login/Registration Menu
-		do{
+		while(!loginMenu.equals("q"))
+		{
 			System.out.println("**********************************************************************");
 			System.out.println("***                                                                ***");
 			System.out.println("***              Welcome to the Online Book Store                  ***");
@@ -20,87 +25,84 @@ public class BookStoreSystem {
 			System.out.println("                     1. Member Login");
 			System.out.println("                     2. New Member Registration");
 			System.out.println("                     q. Quit\n");
-			System.out.print("Type in your option: ");  login_menu = input.nextLine();
+			System.out.print("Type in your option: ");  loginMenu = input.nextLine();
 			
-			if(login_menu.equals("1") || login_menu.equals("2") || login_menu.equals("q"))
+			if(loginMenu.equals("1") || loginMenu.equals("2"))
 			{
-				
-				switch (login_menu){
-					//member login
-					case "1":
+				//member login
+				if(loginMenu.equals("1"))
 						user.accountLogin();
-						login_menu = "q";
-						break;
-						
-					//new member registration
-					case "2":
-						user.accountCreation();
-						login_menu = "q";
-						break;
-						
-					//quit
-					case "q":
-						break;
-						
-				}//end of switch	
-			}//end of if
+				//new member registration
+				else if(loginMenu.equals("2"))
+						user.accountCreation();	
+				
+				//entering member menu
+				int menu = 0;
+				while(menu != 8)
+				{
+				//if login successful
+				//Member Menu
+					System.out.println("**********************************************************************");
+					System.out.println("***                                                                ***");
+					System.out.println("***              Welcome to the Online Book Store                  ***");
+					System.out.println("***                 Member Menu                                    ***");
+					System.out.println("***                                                                ***");
+					System.out.println("**********************************************************************\n");
+					System.out.println("                   1. Browse by Subject");
+					System.out.println("                   2. Search by Author/Title/Subject");
+					System.out.println("                   3. View/Edit Shopping Cart");
+					System.out.println("                   4. Check Order Status");
+					System.out.println("                   5. Check Out");
+					System.out.println("                   6. One Click Check Out");
+					System.out.println("                   7. View/Edit Personal Information");
+					System.out.println("                   8. Logout");
+				    System.out.print("Type in your option: "); 
+				    menu = input.nextInt();
+				    input.nextLine();
+				   
+				    //getting current user's id
+				    String id = user.getId();
+				    switch(menu)
+				    {
+				      	case 1:
+				      		browse(id);
+				    	    break;
+				      	case 2:
+				      		searchByAuthor();
+				      		break;
+				      	case 3:
+				      		viewEditShoppingCart(user);
+				      		break;
+				      	case 4:
+				      		break;
+				      	case 5: 
+				      		checkOut(user, orderNum);
+				      		break;
+				      	case 6:
+				      		break;
+				      	case 7:
+				      		break;
+				      	case 8:
+				      		System.out.println("Thank you for using our online book store!!");
+				      		break;
+				    }//end switch
+				}//end while
+			}//end if
+			else if(loginMenu.equals("q"))
+			{
+				//end of the program
+			}
 			else
-				System.out.println("Please select the valid option");
-			
-		}while(!login_menu.equals("q"));
+			{
+				System.out.println("Please select the valid option");	
+			}
 		
+		}//end while
+    }//end main
+
 		
-		int menu = 100;
-		
-		//if login successful
-		//Member Menu
-		if(!login_menu.equals("q"))
-		{
-			System.out.println("**********************************************************************");
-			System.out.println("***                                                                ***");
-			System.out.println("***              Welcome to the Online Book Store                  ***");
-			System.out.println("***                 Member Menu                                    ***");
-			System.out.println("***                                                                ***");
-			System.out.println("**********************************************************************\n");
-			System.out.println("                   1. Browse by Subject");
-			System.out.println("                   2. Search by Author/Title/Subject");
-			System.out.println("                   3. View/Edit Shopping Cart");
-			System.out.println("                   4, Check Order Status");
-			System.out.println("                   5, Check Out");
-			System.out.println("                   6. One Click Check Out");
-			System.out.println("                   7. View/Edit Personal Information");
-			System.out.println("                   8. Logout");
-		    System.out.print("Type in your option: "); menu = input.nextInt();
-		    input.nextLine();
-		    
-		    //getting current user's id
-		    String id = user.getId();
-		    switch(menu)
-		    {
-		      	case 1:
-		      		browse(id);
-		    	    break;
-		      	case 2:
-		      		searchByAuthor();
-		      		break;
-		      	case 3:
-		      		viewEditShoppingCart(id);
-		      		break;
-		      	case 4:
-		      		break;
-		      	case 5: 
-		      		break;
-		      	case 6:
-		      		break;
-		      	case 7:
-		      		break;
-		    }
-			
-		}
-		input.close();
-	}
 	
-	
+
 	public static void browse(String userId)
 	{
 		
@@ -270,12 +272,12 @@ public class BookStoreSystem {
 		}//end while
 	}
 	
-	public static void viewEditShoppingCart(String userId)
+	public static void viewEditShoppingCart(User user)
 	{
 		String menu = "";
 	 do{
 		//showing contens in shopping cart
-		showCartContents(userId);
+		user.showCartContents();
 		
 		Scanner input = new Scanner(System.in);
 		System.out.println("Enter d to delete item");
@@ -292,7 +294,7 @@ public class BookStoreSystem {
 				Connection con = getConnection();
 				if(menu.equals("d"))
 				{
-					PreparedStatement stmt = con.prepareStatement("DELETE FROM CART WHERE USERID ='" + userId +"' AND ISBN = '" + isbn + "'");
+					PreparedStatement stmt = con.prepareStatement("DELETE FROM CART WHERE USERID ='" + user.getId() +"' AND ISBN = '" + isbn + "'");
 					stmt.executeUpdate();
 					con.close();
 					System.out.println("Item was deleted from your cart");
@@ -300,7 +302,7 @@ public class BookStoreSystem {
 				else if(menu.equals("e"))
 				{
 					System.out.print("Enter new quantitiy: "); int newQty = input.nextInt(); 
-					PreparedStatement stmt = con.prepareStatement("UPDATE CART SET QTY = " + newQty +  " WHERE USERID = '" + userId + "' AND ISBN = '" + isbn + "'");
+					PreparedStatement stmt = con.prepareStatement("UPDATE CART SET QTY = " + newQty +  " WHERE USERID = '" + user.getId() + "' AND ISBN = '" + isbn + "'");
 					stmt.executeUpdate();
 					con.close();
 					System.out.println("Edit Item Completed");
@@ -315,49 +317,81 @@ public class BookStoreSystem {
 	  }while(!menu.equals("q"));
 	}
 	
-	public static void checkOut(String userId)
+	
+	
+	public static void checkOut(User user, int orderNum)
 	{
+		//variable for new shipping address
+		String firstName = "";
+		String lastName = "";
+		String street ="";
+		String city = "";
+		String state = "";
+		int zip = 0;
+		boolean isNewAddress = false;
+		
 		//showing cart contents
-		showCartContents(userId);
+		user.showCartContents();
+		Scanner input = new Scanner(System.in);
+		
+		System.out.print("Proceed to check out?(Y/N): "); String choice = input.nextLine();
+		if(choice.equals("y") || choice.equals("Y"))
+		{
+			System.out.print("Do you want to enter new shipping address?(Y/N): "); String choice2 = input.nextLine();
+			if(choice2.equals("y") || choice2.equals("Y"))
+			{
+				System.out.print("Enter first name: "); firstName = input.nextLine();
+				System.out.print("Enter last name: "); lastName = input.nextLine();
+				System.out.print("Enter street: "); street = input.nextLine();
+				System.out.print("Enter city: ");   city = input.nextLine();	  
+				System.out.print("Enter state: "); state = input.nextLine();   
+				System.out.print("Enter zip: "); zip = input.nextInt(); input.nextLine(); 
+				isNewAddress = true;
+			}
+			
+			boolean isCard = user.checkIfCard();
+			//user has a card information
+			if(isCard)
+			{
+				System.out.print("Do you want to enter new Credit Card Number?(Y/N): "); String choice3 = input.nextLine();
+				//update card information
+				if(choice3.equals("y") || choice3.equals("Y"))
+				{
+					boolean isValid = false;
+					while(!isValid)
+					{
+						System.out.print("Enter new card type (amex/visa): "); String cardType = input.nextLine();
+						System.out.print("Enter new credit card number: "); String cardNum = input.nextLine();
+						isValid = user.isCardValid(cardType, cardNum);
+					}
+				}//end nested if
+			}//end if
+			
+			//user does not have a card information
+			else
+			{
+				boolean isValid = false;
+				String cardType = "";
+				String cardNum = "";
+				while(!isValid)
+				{
+					System.out.println("You currently do not have any card information");
+					System.out.print("Enter credit card type (amex/visa): "); cardType = input.nextLine();
+					System.out.print("Enter credit card number: "); cardNum = input.nextLine();
+					isValid = user.isCardValid(cardType, cardNum);
+				}
+				//update card information
+				user.setCard(cardType, cardNum);
+				user.updateCard();
+			}//end else
+			
+			//generating invoice
+			user.generateInvoice(orderNum, firstName, lastName, street, city, state, zip, isNewAddress);
+			orderNum++;
+			
+		}//end if
 	}
 	
-	public static void showCartContents(String userId)
-	{
-		try{
-			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("SELECT c.ISBN, b.TITLE, b.PRICE, c.QTY FROM CART c, BOOKS b WHERE c.ISBN = b.ISBN AND USERID = ?");
-			stmt.setString(1, userId);
-			ResultSet rs = stmt.executeQuery();
-			System.out.println("Current Cart Contents:");
-			System.out.printf("%-12s %-165s %-5s %-3s %-7s", "ISBN", "Title", "$", "Qty", "Total");
-			System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------------"
-					+ "--------------------------------------");
-			double total = 0;
-			double allTotal = 0;
-			while(rs.next())
-			{
-				System.out.printf("%-12s",  rs.getString(1)); //ISBN
-				System.out.printf("%-165s", rs.getString(2) ); //TITLE
-				System.out.printf("%5.2f",   rs.getDouble(3)); //PRICE
-				System.out.printf("%5d",   rs.getInt(4)); //QTY
-				total = (rs.getDouble(3)) * (rs.getInt(4));
-				System.out.printf("%8.2f", total); //Total
-				System.out.println(); //new line
-				allTotal = allTotal + total;
-			}
-			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------"
-					+ "--------------------------------------");
-			System.out.print("Total =");
-			System.out.printf("%188.2f", allTotal);
-			System.out.println();
-			con.close();
-		}
-		catch(Exception e)
-		{
-			System.out.println(e);
-		}
-		
-	}
 	public static Connection getConnection()
 	{
 			try
@@ -372,5 +406,6 @@ public class BookStoreSystem {
 				return null;
 			}
 		}
+	
 }
 
