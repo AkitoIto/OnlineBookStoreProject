@@ -9,11 +9,22 @@ public class BookStoreSystem
 	{
 		//login option for users
 		String loginMenu = "z";
+		String firstName ="";
+		String lastName = "";
+		String address = "";
+		String city = "";
+		String state = "";
+		int zip = 0;
+		String phone = "";
+		String email = "";
+		String userId = "";
+		String pwd = "";
+		String creditMenu = "";
+		String cardType = null;
+		String cardNum = null;
 		Scanner input = new Scanner(System.in);
-		User user = new User();
 		int orderNum = 1;
 		
-	  
 		//Login/Registration Menu
 		while(!loginMenu.equals("q"))
 		{
@@ -31,11 +42,94 @@ public class BookStoreSystem
 			{
 				//member login
 				if(loginMenu.equals("1"))
-						user.accountLogin();
+				{
+						boolean isValid = false;
+						while(!isValid)
+						{
+							System.out.println("Welcome to the Online Book Store"); 
+							System.out.println("         Login page");
+							System.out.print("Enter the User ID: ");
+							userId = input.nextLine(); 
+							System.out.print("Enter password: ");
+							pwd = input.nextLine(); 
+							
+							isValid = loginCheck(userId,pwd);		
+						}
+						
+						System.out.println("You have logined successfully");
+						//if login successful get all attributes for this user object
+						try
+						{
+							Connection con = getConnection();
+							PreparedStatement stmt = con.prepareStatement("SELECT * FROM MEMBERS WHERE USERID = '" + userId + "'");
+							ResultSet rs = stmt.executeQuery();
+							while(rs.next())
+							{
+								this.firstName = rs.getString(1);
+								this.lastName = rs.getString(2);
+								this.address = rs.getString(3);
+								this.city = rs.getString(4);
+								this.state = rs.getString(5);
+								this.zip = rs.getInt(6);
+								this.phone = rs.getString(7);
+								this.email = rs.getString(8);
+								this.cardType = rs.getString(11);
+								this.cardNum = rs.getString(12);
+							}
+						}
+						catch(Exception e)
+						{
+							
+						}
+						
+					}
+					
+
+					//user.accountLogin();
+				}
+				
 				//new member registration
 				else if(loginMenu.equals("2"))
-						user.accountCreation();	
+				{
+					System.out.println("Welcome to the Online Book Store"); 
+					System.out.println("         New Member Registration");
+					System.out.print("Enter first name: "); 	firstName = input.nextLine(); 
+					System.out.print("Enter last name: ");  	lastName = input.nextLine(); 
+					System.out.print("Enter street address: "); address = input.nextLine(); 
+					System.out.print("Enter city: "); 			city = input.nextLine(); 
+					System.out.print("Enter state: ");			state = input.nextLine();
+					System.out.print("Enter zip code: ");		zip = input.nextInt(); input.nextLine();
+					System.out.print("Enter phone number: "); 	phone = input.nextLine(); 
+					System.out.print("Enter email address: ");	email = input.nextLine(); 
+					System.out.print("Enter User ID: ");		userId = input.nextLine(); 
+					System.out.print("Enter password: ");		pwd = input.nextLine(); 
+					System.out.println("Do you wish to store credit card information? (Y/N): "); creditMenu = input.nextLine();
 				
+					
+					//if a customer wish to store credit card information
+					if(creditMenu.equals("Y") || creditMenu.equals("y"))
+					{
+						boolean isValid = false;
+						while(!isValid)
+						{
+							System.out.print("Enter type of Credit Card (amex/visa): "); cardType = input.nextLine(); 
+							System.out.print("Enter Credit Card Number: "); cardNum = input.nextLine();
+							//check if entered card information is valid
+							isValid = isCardValid(cardType, cardNum);
+						}
+						
+					}
+					
+					//if a customer do not want to store credit card information, it was stored null initially
+					
+					User user = new User(firstName, lastName, address, city, state, zip, phone, email, userId, pwd, cardType, cardNum);
+					user.registration();
+					String showInfo = user.toString();
+					System.out.println(showInfo);
+				}
+			   }
+		    }
+				/*
 				//entering member menu
 				int menu = 0;
 				while(menu != 8)
@@ -61,22 +155,22 @@ public class BookStoreSystem
 				    input.nextLine();
 				   
 				    //getting current user's id
-				    String id = user.getId();
+				   // String id = user.getId();
 				    switch(menu)
 				    {
 				      	case 1:
-				      		browse(id);
+				      		//browse(id);
 				    	    break;
 				      	case 2:
 				      		searchByAuthor();
 				      		break;
 				      	case 3:
-				      		viewEditShoppingCart(user);
+				      		//viewEditShoppingCart(user);
 				      		break;
 				      	case 4:
 				      		break;
 				      	case 5: 
-				      		checkOut(user, orderNum);
+				      		//checkOut(user, orderNum);
 				      		break;
 				      	case 6:
 				      		break;
@@ -95,12 +189,53 @@ public class BookStoreSystem
 			else
 			{
 				System.out.println("Please select the valid option");	
-			}
+			}*/
 		
-		}//end while
+		}//end while*/
     }//end main
 
+//this method checks if login was successful or not
+	public boolean loginCheck(String userId, String pwd)
+	{
+		try
+		{
 		
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("select password from MEMBERS where userId = ?");
+			
+			stmt.setString(1, userId);
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			//check if a user ID exists in database
+			if(rs.next()){
+				while(rs.next())
+				{
+					String password = rs.getString(1);
+			 
+					if(password.equals(pwd))
+						return true;
+					else
+					 return false;
+				 }
+				
+				 return true;
+			}
+			else
+			{
+				System.out.println("This user id does not exist, please type again");
+				return false;
+			}
+			
+	   
+	   }
+		catch(Exception e)
+		{
+			System.out.println(e);
+			return false;
+		}
+	}
+	
 	
 
 	public static void browse(String userId)
@@ -362,7 +497,7 @@ public class BookStoreSystem
 					{
 						System.out.print("Enter new card type (amex/visa): "); String cardType = input.nextLine();
 						System.out.print("Enter new credit card number: "); String cardNum = input.nextLine();
-						isValid = user.isCardValid(cardType, cardNum);
+						//isValid = user.isCardValid(cardType, cardNum);
 					}
 				}//end nested if
 			}//end if
@@ -378,7 +513,7 @@ public class BookStoreSystem
 					System.out.println("You currently do not have any card information");
 					System.out.print("Enter credit card type (amex/visa): "); cardType = input.nextLine();
 					System.out.print("Enter credit card number: "); cardNum = input.nextLine();
-					isValid = user.isCardValid(cardType, cardNum);
+					//isValid = user.isCardValid(cardType, cardNum);
 				}
 				//update card information
 				user.setCard(cardType, cardNum);
@@ -391,6 +526,36 @@ public class BookStoreSystem
 			
 		}//end if
 	}
+	
+	//this method check if entered card information is valid of not
+	 public static boolean isCardValid(String cardType, String cardNum)
+		{
+			  if(cardType.equals("amex") || cardType.equals("visa"))
+			  {
+					if(cardNum.length() != 14)
+					{
+						System.out.println("Card number length has to be 14");
+						return false;
+					}
+					else
+						return true;
+			  }
+			  else
+			  {
+				  if(cardNum.length() != 14)
+					{
+					   System.out.println("Credit card type must be amex or visa");
+					   System.out.println("Card number length has to be 14");
+					   return false;
+					}
+				  else
+				  {
+					  System.out.println("Credit card type must be amex or visa");
+					  return false;
+				  }
+			  }
+		}
+		
 	
 	public static Connection getConnection()
 	{

@@ -20,64 +20,33 @@ public class User {
 	private String cardType = "";
 	private String cardNum = "";
 	
-
-	//creates account 
-	public void accountCreation()
+	public User(String firstName, String lastName, String address, String city, String state, int zip, String phone, String email, String userId, String pwd, String cardType, String cardNum)
 	{
-		System.out.println("Welcome to the Online Book Store"); 
-		System.out.println("         New Member Registration");
-		
-		Scanner input = new Scanner(System.in);
-		System.out.print("Enter first name: "); 	firstName = input.nextLine(); 
-		System.out.print("Enter last name: ");  	lastName = input.nextLine(); 
-		System.out.print("Enter street address: "); address = input.nextLine(); 
-		System.out.print("Enter city: "); 			city = input.nextLine(); 
-		System.out.print("Enter state: ");			state = input.nextLine();
-		System.out.print("Enter zip code: ");		zip = input.nextInt(); input.nextLine();
-		System.out.print("Enter phone number: "); 	phone = input.nextLine(); 
-		System.out.print("Enter email address: ");	email = input.nextLine(); 
-		System.out.print("Enter User ID: ");		userId = input.nextLine(); 
-		System.out.print("Enter password: ");		pwd = input.nextLine(); 
-		System.out.println("Do you wish to store credit card information? (Y/N): "); creditMenu = input.nextLine();
-		
-		
-		//if a customer has a card information or not
-		boolean isCard = false;
-		
-		//if a customer wish to store credit card information
-		if(creditMenu.equals("Y") || creditMenu.equals("y"))
-		{
-			boolean isValid = false;
-			while(!isValid)
-			{
-				System.out.print("Enter type of Credit Card (amex/visa): "); cardType = input.nextLine(); 
-				System.out.print("Enter Credit Card Number: "); cardNum = input.nextLine();
-				//check if entered card information is valid
-				isValid = isCardValid(cardType, cardNum);
-			}
-			
-		}
-		
-		//if a customer do not want to store credit card information
-		else if(creditMenu.equals("n"))
-		{
-			isCard = false;
-			cardType = null;
-			cardNum = null;
-		}
-		
-		//inserting data
-		userCreation(firstName, lastName, address, city, state, zip, phone, email, userId, pwd, cardType, cardNum, isCard);
-		
-		System.out.println("Name:    		    " + firstName + " " + lastName);
-		System.out.println("Address: 		    " + address);
-		System.out.println("City:   	        " + city);
-		System.out.println("Phone    		    " + phone);
-		System.out.println("Email:              " + email);
-		System.out.println("UserID:             " + userId);
-		System.out.println("Credit CardType:    " + cardType);
-		System.out.println("Credit Card Number: " + cardNum);
-		
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.address = address;
+		this.city = city;
+		this.state = state;
+		this.zip = zip;
+		this.phone = phone;
+		this.email = email;
+		this.userId = userId;
+		this.pwd = pwd;
+		this.cardType= cardType;
+		this.cardNum = cardNum;
+	}
+
+	
+	public String toString()
+	{
+		return   "Name: " + this.firstName + this.lastName +"\n"
+				+"Address: " + this.address +"\n"
+				+"City: " + this.city +"\n"
+				+"Phone: " + this.phone + "\n"
+				+"Email: " + this.email + "\n"
+				+"UserID: " + this.userId + "\n"
+				+"Credit Card Type: " + this.cardType + "\n"
+				+"Credit Card Number: " + this.cardNum + "\n";
 	}
 	
 	//logins account
@@ -125,6 +94,7 @@ public class User {
 		
 	}
 	
+
 	//this method checks if login was successful or not
 	public boolean loginCheck(String userId, String pwd)
 	{
@@ -192,60 +162,31 @@ public class User {
 				}
 	}
 	
-	//this method check if entered card information is valid of not
-	public boolean isCardValid(String cardType, String cardNum)
-	{
-		  if(cardType.equals("amex") || cardType.equals("visa"))
-		  {
-				if(cardNum.length() != 14)
-				{
-					System.out.println("Card number length has to be 14");
-					return false;
-				}
-				else
-					return true;
-		  }
-		  else
-		  {
-			  if(cardNum.length() != 14)
-				{
-				   System.out.println("Credit card type must be amex or visa");
-				   System.out.println("Card number length has to be 14");
-				   return false;
-				}
-			  else
-			  {
-				  System.out.println("Credit card type must be amex or visa");
-				  return false;
-			  }
-		  }
-	}
 	
 	//function that creates account and insert user information to the database
-	public static void userCreation(String firstName, String lastName, String address, String city, String state, int zip, String phone, String email,
-			                 String userId, String pwd, String cardType, String cardNum, boolean isCard)
+	public void registration()
 	{
 		try{
 			Connection con = getConnection();
 			PreparedStatement pstmt = con.prepareStatement("INSERT INTO MEMBERS(fname, lname, address, city, state, zip, phone, email, userid, password, creditcardtype, creditcardnumber)"
 					+ " VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
 			
-			pstmt.setString(1, firstName);
-			pstmt.setString(2, lastName);
-			pstmt.setString(3, address);
-			pstmt.setString(4, city);
-			pstmt.setString(5, state);
-			pstmt.setInt(6, zip);
-			pstmt.setString(7, phone);
-			pstmt.setString(8, email);
-			pstmt.setString(9, userId);
-			pstmt.setString(10, pwd);
+			pstmt.setString(1, this.firstName);
+			pstmt.setString(2, this.lastName);
+			pstmt.setString(3, this.address);
+			pstmt.setString(4, this.city);
+			pstmt.setString(5, this.state);
+			pstmt.setInt(6, this.zip);
+			pstmt.setString(7, this.phone);
+			pstmt.setString(8, this.email);
+			pstmt.setString(9, this.userId);
+			pstmt.setString(10, this.pwd);
 			
 			//inserting data with credit card info
-			if(isCard)
+			if(!cardType.equals(null))
 			{
-				pstmt.setString(11, cardType);
-				pstmt.setString(12, cardNum);
+				pstmt.setString(11, this.cardType);
+				pstmt.setString(12, this.cardNum);
 				pstmt.executeUpdate();
 			}
 			//no credit card info
