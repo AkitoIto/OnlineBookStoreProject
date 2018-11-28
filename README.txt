@@ -1,4 +1,4 @@
-This is a database systems project for fall 2018.(Project ongoing.
+This is a database systems project for fall 2018.(Project ongoing)
 Creating online bookstore system with Java applications(basic UI on console) and Oracle database.
 
 This application has basic functions such as:
