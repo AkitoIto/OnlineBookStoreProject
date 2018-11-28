@@ -4,6 +4,7 @@ Creating online bookstore system with Java applications(basic UI on console) and
 This application has basic functions such as:
 Register an account/Login to an account
 Browse books by subject
+Edit shopping cart/personal information
 Put an item to a shooping cart
 Check out
 One click check out
