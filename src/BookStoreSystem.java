@@ -4,7 +4,7 @@ import java.util.*;
 public class BookStoreSystem {
 	public static void main(String[] args){
 		//login option for users
-		String loginMenu = "z";
+		String loginMenu = "";
 		String firstName = "", lastName = "", address = "", city = "", state = "", phone = "", email = "", userId = "", pwd = "", pwd2 = "";
 		int zip = 0;
 		String creditMenu = "", cardType = null, cardNum = null;
@@ -16,8 +16,7 @@ public class BookStoreSystem {
 		User user = new User(null,null,null,null,null, 0, null, null, null, null, null, null);
 		
 		//Login/Registration Menu
-		while(!loginMenu.equals("q"))
-		{
+		  do{
 			System.out.println("**********************************************************************");
 			System.out.println("***                                                                ***");
 			System.out.println("***              Welcome to the Online Book Store                  ***");
@@ -28,8 +27,7 @@ public class BookStoreSystem {
 			System.out.println("                     q. Quit\n");
 			System.out.print("Type in your option: ");  loginMenu = input.nextLine();
 			
-			if(loginMenu.equals("1") || loginMenu.equals("2"))
-			{
+			if(loginMenu.equals("1") || loginMenu.equals("2")){
 				//member login
 				if(loginMenu.equals("1")){
 						
@@ -109,7 +107,7 @@ public class BookStoreSystem {
 		    
 				//entering member menu
 				int menu = 0;
-				while(menu != 8)
+			    do
 				{
 				//if login successful
 				//Member Menu
@@ -131,8 +129,7 @@ public class BookStoreSystem {
 				    menu = input.nextInt();
 				    input.nextLine();
 				   
-				    switch(menu)
-				    {
+				    switch(menu) {
 				      	case 1:
 				      		 browse(user.getId());
 				    	    break;
@@ -156,7 +153,7 @@ public class BookStoreSystem {
 				      		System.out.println("Thank you for using our online book store!!");
 				      		break;
 				    }//end switch
-				}//end while
+				}while(menu != 8);
 			}//end if
 			
 			else if(loginMenu.equals("q")){ //end of the program
@@ -164,7 +161,7 @@ public class BookStoreSystem {
 			else{
 				System.out.println("Please select the valid option.");	
 			}
-		}//end while*/
+		}while(!loginMenu.equals("q"));
     }//end main
 
 	public static boolean isIdUnique(String userId){
@@ -364,18 +361,15 @@ public class BookStoreSystem {
 			input.nextLine();
 			
 			//Author Search
-			if(option == 1)
-			{
+			if(option == 1){
 				System.out.print("Enter Author name or part of author name: ");
 				String author = input.nextLine();
 				
-				try
-				{
+				try{
 					Connection con = getConnection();
 					PreparedStatement stmt = con.prepareStatement("SELECT * FROM BOOKS WHERE AUTHOR LIKE '%" + author + "%'");
 					ResultSet rs = stmt.executeQuery();
-					while(rs.next())
-					{
+					while(rs.next()){
 						 System.out.println("Author:   " + rs.getString(2)); //AUTHOR
 						 System.out.println("TITLE:    " + rs.getString(3)); //TITLE
 						 System.out.println("ISBN:     " + rs.getString(1)); //ISBN
@@ -384,23 +378,19 @@ public class BookStoreSystem {
 					}
 					con.close();
 				}
-				catch(Exception e)
-				{
+				catch(Exception e){
 					System.out.println("There are no books with Author name '" + author + "'");
 				}
 			}//end if
 			//Title Search
-			else if(option == 2)
-			{
+			else if(option == 2){
 				System.out.print("Enter title or part of title: ");
 				String title = input.nextLine();
-				try
-				{
+				try{
 					Connection con = getConnection();
 					PreparedStatement stmt = con.prepareStatement("SELECT * FROM BOOKS WHERE TITLE LIKE '%" + title +"%'");
 					ResultSet rs = stmt.executeQuery();
-					while(rs.next())
-					{
+					while(rs.next()){
 						 System.out.println("Author:   " + rs.getString(2)); //AUTHOR
 						 System.out.println("TITLE:    " + rs.getString(3)); //TITLE
 						 System.out.println("ISBN:     " + rs.getString(1)); //ISBN
@@ -409,11 +399,9 @@ public class BookStoreSystem {
 					}
 					con.close();
 				}
-				catch(Exception e)
-				{
+				catch(Exception e){
 					System.out.println("There are no books containg title '" + title + "'");
 				}
-				
 			}//end else if	
 		}//end while
 	}
@@ -474,7 +462,7 @@ public class BookStoreSystem {
 		String firstName = "", lastName = "", street ="", city = "", state = "";
 		int zip = 0;
 		boolean isNewAddress = false;
-		
+		boolean isValid = false;
 		//showing cart contents
 		user.showCartContents();
 		Scanner input = new Scanner(System.in);
@@ -498,26 +486,24 @@ public class BookStoreSystem {
 				System.out.print("Do you want to enter new Credit Card Number?(Y/N): "); String choice3 = input.nextLine();
 				//update card information
 				if(choice3.equals("y") || choice3.equals("Y")){
-					boolean isValid = false;
-					while(!isValid){
+					do{
 						System.out.print("Enter new card type (amex/visa): "); String cardType = input.nextLine();
 						System.out.print("Enter new credit card number: "); String cardNum = input.nextLine();
 						isValid = isCardValid(cardType, cardNum);
-					}//end while
+					}while(!isValid);
 				}//end nested if
 			}//end if
 			
 			//user does not have a card information
 			else{
-				boolean isValid = false;
 				String cardType = "";
 				String cardNum = "";
-				while(!isValid){
-					System.out.println("You currently do not have any card information");
+				 do{
+					System.out.println("You currently do not have any card information.");
 					System.out.print("Enter credit card type (amex/visa): "); cardType = input.nextLine();
 					System.out.print("Enter credit card number: "); cardNum = input.nextLine();
 					isValid = isCardValid(cardType, cardNum);
-				}//while
+				}while(!isValid);
 				//update card information
 				user.updateCard(cardType, cardNum);
 			}//end else
@@ -537,7 +523,7 @@ public class BookStoreSystem {
 	public static void editInfo(User user){
 		Scanner input = new Scanner(System.in);
 		int menu = 0;
-		
+		boolean isValid = false;
 		while(menu != 2){
 		System.out.print(user.toString());
 		System.out.println("1. Edit information");
@@ -576,23 +562,26 @@ public class BookStoreSystem {
 				user.updateEmail(email);
 			}
 			else if(whichInfo == 5){
-				System.out.println("Enter new password: "); String pwd = input.nextLine();
+				String pwd = "";
+				do{
+					System.out.print("Enter new password: "); pwd = input.nextLine();
+					System.out.print("Confirm password: "); String pwd2 = input.nextLine();
+					isValid = confirmPass(pwd, pwd2);
+				}while(!isValid);
 				user.updatePwd(pwd);
 			}
 			else if(whichInfo == 6){
-				boolean isValid = false;
 				String cardType = "", cardNum = "";
-				while(!isValid){
+				 do{
 					System.out.print("Enter new card type: ");  cardType = input.nextLine();
 					System.out.print("Enter new card number: "); cardNum = input.nextLine();
 					isValid = isCardValid(cardType, cardNum);
-			    }
+				  }while(!isValid);
 				user.updateCard(cardType, cardNum);
 			}
 		  }//end outer if
 		}//end while
 	}//end of method
-	
 	
 	public static Connection getConnection()
 	{

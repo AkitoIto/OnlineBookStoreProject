@@ -109,8 +109,7 @@ public class User {
 		catch(Exception e){ System.out.println(e); }
 	}
 	
-	public void updateAddress(String address, String city, String state, int zip)
-	{
+	public void updateAddress(String address, String city, String state, int zip){
 		this.address = address;
 		this.city = city;
 		this.state = state;
@@ -121,10 +120,7 @@ public class User {
 															"', STATE = '" + state + "', ZIP = " + zip + " WHERE USERID = '" + this.userId + "'");
 			stmt.executeUpdate();
 		}
-		catch(Exception e)
-		{
-			System.out.println(e);
-		}
+		catch(Exception e){	System.out.println(e);}
 	}
 	
 	public void updatePhone(String phone)
