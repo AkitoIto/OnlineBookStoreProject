@@ -1,5 +1,7 @@
 import java.sql.*;
 import java.util.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 public class BookStoreSystem {
 	public static void main(String[] args){
@@ -9,8 +11,6 @@ public class BookStoreSystem {
 		int zip = 0;
 		String creditMenu = "", cardType = null, cardNum = null;
 		Scanner input = new Scanner(System.in);
-		//order number starts from 1
-		int orderNum = 1;
 		boolean isValid = false;
 		//make user object
 		User user = new User(null,null,null,null,null, 0, null, null, null, null, null, null);
@@ -118,7 +118,7 @@ public class BookStoreSystem {
 					System.out.println("***                                                                ***");
 					System.out.println("**********************************************************************\n");
 					System.out.println("                   1. Browse by Subject");
-					System.out.println("                   2. Search by Author/Title/Subject");
+					System.out.println("                   2. Search by Author/Title");
 					System.out.println("                   3. View/Edit Shopping Cart");
 					System.out.println("                   4. Check Order Status");
 					System.out.println("                   5. Check Out");
@@ -131,10 +131,10 @@ public class BookStoreSystem {
 				   
 				    switch(menu) {
 				      	case 1:
-				      		 browse(user.getId());
+				      		 browse(user.getId(), user);
 				    	    break;
 				      	case 2:
-				      		searchByAuthor();
+				      		searchByAuthor(user);
 				      		break;
 				      	case 3:
 				      		 viewEditShoppingCart(user);
@@ -142,7 +142,7 @@ public class BookStoreSystem {
 				      	case 4:
 				      		break;
 				      	case 5: 
-				      		 checkOut(user, orderNum);
+				      		 checkOut(user);
 				      		break;
 				      	case 6:
 				      		break;
@@ -196,7 +196,6 @@ public class BookStoreSystem {
 			//check if a user ID exists in database
 			if(rs.next()){
 					password = rs.getString(1);
-					System.out.println(rs.getString(1));
 				if(password.equals(pwd))
 					return true;
 				else{
@@ -248,45 +247,36 @@ public class BookStoreSystem {
 	  }
 			
 	//browse by subject menu
-	public static void browse(String userId){
+	public static void browse(String userId, User user){
 		Scanner input = new Scanner(System.in);
 		String option = "3";
+		String[] subject = new String[30];
 		
-	  while(!option.equals("2"))
-	  {
-		 String[] subject = new String[100];
-		
+	  do{
 	   //listing subjects
-	   try
-	   {
+	   try{
 		   Connection con = getConnection();
 		   String query = "SELECT DISTINCT SUBJECT FROM BOOKS ORDER BY SUBJECT";
 		   PreparedStatement stmt = con.prepareStatement(query);
 		   ResultSet rs = stmt.executeQuery();
 		   int num = 1;
-		   while(rs.next())
-		   {
+		   while(rs.next()) {
 			   System.out.println(num + " "+ rs.getString(1));
 			   subject[num] = rs.getString(1);
 			   num++;
 		   }
 		   con.close();
-	   }
-	   catch(Exception e)
-	   {
-		   System.out.println(e);
+	    }
+	   catch(Exception e) {
 	   }
 	   
 	   System.out.print("Enter your choice: ");  int choice = input.nextInt();
 	   input.nextLine();
 	   //getting book lists for the subject user chose
-	   try
-	   {
+	   try {
 		   Connection con = getConnection();
-		   String query = "SELECT * FROM BOOKS WHERE SUBJECT = ?";
-		   String numRows = "SELECT COUNT(*) FROM BOOKS WHERE SUBJECT = ?"; 
-		   PreparedStatement stmt = con.prepareStatement(query);
-		   PreparedStatement stmt2 = con.prepareStatement(numRows);
+		   PreparedStatement stmt = con.prepareStatement("SELECT * FROM BOOKS WHERE SUBJECT = ?");
+		   PreparedStatement stmt2 = con.prepareStatement("SELECT COUNT(*) FROM BOOKS WHERE SUBJECT = ?");
 		   stmt.setString(1, subject[choice]);
 		   ResultSet rs = stmt.executeQuery();
 		   stmt2.setString(1, subject[choice]);
@@ -295,11 +285,10 @@ public class BookStoreSystem {
 		   while(rs2.next())
 		   {
 			   int rows = rs2.getInt(1);
-			   System.out.println(rows + " books available on this subject\n\n");
+			   System.out.println(rows + " books available on this subject.\n\n");
 		   }
 		   //listing all books from a subject
-		   while(rs.next())
-		   {
+		   while(rs.next()){
 			   System.out.println("Author:   " + rs.getString(2)); //AUTHOR
 			   System.out.println("TITLE:    " + rs.getString(3)); //TITLE
 			   System.out.println("ISBN:     " + rs.getString(1)); //ISBN
@@ -308,60 +297,40 @@ public class BookStoreSystem {
 		   }
 		   con.close();
 	   }
-	   catch(Exception e)
-	   {
-		   System.out.println(e);
-	   }
-	   
-	   
-	   System.out.println("1. Enter ISBN to put in cart");
+	   catch(Exception e) {}
+	
+	   do{
+	   System.out.println("1. Enter ISBN to put in shopping cart");
 	   System.out.println("2. Return to main menu");
 	   System.out.println("3. Continue browsing"); 
 	   System.out.print("Type in your option: ");  option = input.nextLine();
 	   
-	   //shopping cart
-	   if(option.equals("1"))
-	   {
+	   //add to shopping cart
+	   if(option.equals("1")) {
 		   String isbn = "";
 		   int quantity = 0;
-		   System.out.print("Enter ISBN to add to shopping cart: "); isbn = input.nextLine();
-		   System.out.print("Enter quantity: "); quantity = input.nextInt();
-		   try
-		   {
-		   Connection con = getConnection();
-		   PreparedStatement stmt = con.prepareStatement("INSERT INTO CART(USERID, ISBN, QTY) VALUES(?,?,?)");
-		   stmt.setString(1, userId);
-		   stmt.setString(2, isbn);
-		   stmt.setInt(3, quantity);
-		   stmt.executeUpdate();
-		   con.close();
-		   System.out.println("You have added an item!");
-		   }
-		   catch(Exception e)
-		   {
-			   System.out.println(e);
-		   }
-	   }
+		   System.out.print("Enter ISBN: "); isbn = input.nextLine();
+		   System.out.print("Enter quantity: "); quantity = input.nextInt(); input.nextLine();
+		   user.addToCart(isbn,quantity);
+	     }//end if
+	   }while(option.equals("1"));
 	   
-	  }
+	  }while(!option.equals("2"));
 	}
 	
 	//search by author or title menu
-	public static void searchByAuthor(){
+	public static void searchByAuthor(User user){
 	   Scanner input = new Scanner(System.in);
-	   int option = 100;
+	   String option = "", isContinue = "";
 	   
-	   while(option != 3)
-		{
+	   do{
 			System.out.println("1. Author Search");
 			System.out.println("2. Title Search");
 			System.out.println("3. Return to Member Menu");
 			System.out.print("Type in your option: "); 
-			option = input.nextInt(); 
-			input.nextLine();
-			
+			option = input.nextLine();
 			//Author Search
-			if(option == 1){
+			if(option.equals("1")){
 				System.out.print("Enter Author name or part of author name: ");
 				String author = input.nextLine();
 				
@@ -369,6 +338,9 @@ public class BookStoreSystem {
 					Connection con = getConnection();
 					PreparedStatement stmt = con.prepareStatement("SELECT * FROM BOOKS WHERE AUTHOR LIKE '%" + author + "%'");
 					ResultSet rs = stmt.executeQuery();
+					if(!rs.next())
+					        System.out.println("There are no books with Author name '" + author + "'");
+					else{
 					while(rs.next()){
 						 System.out.println("Author:   " + rs.getString(2)); //AUTHOR
 						 System.out.println("TITLE:    " + rs.getString(3)); //TITLE
@@ -376,34 +348,50 @@ public class BookStoreSystem {
 						 System.out.println("PRICE:    " + rs.getString(4)); //PRICE
 						 System.out.println("SUBJECT:  " + rs.getString(5) +"\n"); //SUBJECT
 					}
+					}
 					con.close();
 				}
 				catch(Exception e){
-					System.out.println("There are no books with Author name '" + author + "'");
 				}
 			}//end if
 			//Title Search
-			else if(option == 2){
+			else if(option.equals("2")){
 				System.out.print("Enter title or part of title: ");
 				String title = input.nextLine();
 				try{
 					Connection con = getConnection();
 					PreparedStatement stmt = con.prepareStatement("SELECT * FROM BOOKS WHERE TITLE LIKE '%" + title +"%'");
 					ResultSet rs = stmt.executeQuery();
-					while(rs.next()){
-						 System.out.println("Author:   " + rs.getString(2)); //AUTHOR
-						 System.out.println("TITLE:    " + rs.getString(3)); //TITLE
-						 System.out.println("ISBN:     " + rs.getString(1)); //ISBN
-						 System.out.println("PRICE:    " + rs.getString(4)); //PRICE
-						 System.out.println("SUBJECT:  " + rs.getString(5) +"\n"); //SUBJECT
+					if(!rs.next())
+						System.out.println("There are no books containg title '" + title + "'");
+					else{
+						while(rs.next()){
+							 System.out.println("Author:   " + rs.getString(2)); //AUTHOR
+							 System.out.println("TITLE:    " + rs.getString(3)); //TITLE
+							 System.out.println("ISBN:     " + rs.getString(1)); //ISBN
+							 System.out.println("PRICE:    " + rs.getString(4)); //PRICE
+							 System.out.println("SUBJECT:  " + rs.getString(5) +"\n"); //SUBJECT
+						}
 					}
 					con.close();
 				}
 				catch(Exception e){
-					System.out.println("There are no books containg title '" + title + "'");
+					
 				}
 			}//end else if	
-		}//end while
+			if(!option.equals("3")){
+				System.out.println("1. Enter ISBN to add to shopping cart");
+				System.out.println("2: Continue browsking");
+				System.out.println("3: Return to main menu");
+				System.out.print("Enter your option: "); option = input.nextLine();
+				if(option.equals("1")){
+				System.out.print("Enter ISBN: "); String isbn = input.nextLine();
+				System.out.print("Enter Quantity: "); int quantity = input.nextInt(); 
+				input.nextLine();
+				user.addToCart(isbn, quantity);
+			}
+			}
+		}while(!option.equals("3"));
 	}
 	
 	//view or edit shopping cart menu
@@ -411,6 +399,7 @@ public class BookStoreSystem {
 		String menu = "";
 	 do{
 		//showing contents in shopping cart
+		System.out.println("Current cart contents: ");
 		user.showCartContents();
 		
 		Scanner input = new Scanner(System.in);
@@ -420,34 +409,16 @@ public class BookStoreSystem {
 		
 		
 		//delete or edit cart
-		if(!menu.equals("q"))
-		{
-			try
-			{
+		if(!menu.equals("q")){
 				System.out.print("Enter ISBN of item: "); String isbn = input.nextLine();
-				Connection con = getConnection();
-				if(menu.equals("d"))
-				{
-					PreparedStatement stmt = con.prepareStatement("DELETE FROM CART WHERE USERID ='" + user.getId() +"' AND ISBN = '" + isbn + "'");
-					stmt.executeUpdate();
-					con.close();
-					System.out.println("Item was deleted from your cart");
+				if(menu.equals("d")){
+					user.deleteFromCart(isbn);
 				}
-				else if(menu.equals("e"))
-				{
+				else if(menu.equals("e")){
 					System.out.print("Enter new quantitiy: "); int newQty = input.nextInt(); 
-					PreparedStatement stmt = con.prepareStatement("UPDATE CART SET QTY = " + newQty +  " WHERE USERID = '" + user.getId() + "' AND ISBN = '" + isbn + "'");
-					stmt.executeUpdate();
-					con.close();
-					System.out.println("Edit Item Completed");
+					user.editCart(isbn, newQty);
 				}
 			}
-			catch(Exception e)
-			{
-				System.out.println(e);
-			}
-		}
-		
 	  }while(!menu.equals("q"));
 	}
 	
@@ -457,7 +428,7 @@ public class BookStoreSystem {
 	}
 	
 	//check out menu
-	public static void checkOut(User user, int orderNum){
+	public static void checkOut(User user){
 		//variable for new shipping address
 		String firstName = "", lastName = "", street ="", city = "", state = "";
 		int zip = 0;
@@ -508,9 +479,12 @@ public class BookStoreSystem {
 				user.updateCard(cardType, cardNum);
 			}//end else
 			
-			//generating invoice
+	
+			int orderNum = user.insertOrder(street, city, state, zip, isNewAddress);
 			user.generateInvoice(orderNum, firstName, lastName, street, city, state, zip, isNewAddress);
-			orderNum++;	
+			user.showOrder(orderNum);
+			System.out.println("Please enter to go back to menu");
+			input.nextLine();
 		}//end if
 	}
 	
@@ -583,20 +557,16 @@ public class BookStoreSystem {
 		}//end while
 	}//end of method
 	
-	public static Connection getConnection()
-	{
-			try
-			{
+	public static Connection getConnection(){
+			try{
 				Class.forName("oracle.jdbc.driver.OracleDriver");
 				Connection con = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:ORCL", "akito_ito","utdfall2018");
 				return con;
 			}
-			catch(Exception e)
-			{
+			catch(Exception e){
 				System.out.println(e);
 				return null;
 			}
 		}
-	
-}
+}//end of class
 

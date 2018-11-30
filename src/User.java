@@ -1,6 +1,6 @@
 import java.util.*;
 import java.sql.*;
-
+import java.time.*;
 
 public class User {
 	//user general information
@@ -19,8 +19,7 @@ public class User {
 		this.cardType= cardType; this.cardNum = cardNum;
 	}
 
-	public String toString()
-	{
+	public String toString(){
 		return   "Name: " + this.firstName + " " + this.lastName +"\n"
 				+"Address: " + this.address +"\n"
 				+"City: " + this.city +"\n"
@@ -32,7 +31,6 @@ public class User {
 				+"Credit Card Type: " + this.cardType + "\n"
 				+"Credit Card Number: " + this.cardNum + "\n";
 	}
-	
 	
 	//checks if a user has a card information 
 	public boolean checkIfCard(){
@@ -52,7 +50,6 @@ public class User {
 					 return false;
 				}
 	}
-	
 	
 	//function that creates account and insert user information to the database
 	public void registration(){
@@ -90,9 +87,7 @@ public class User {
 		catch(Exception e){}		
 		}
 	
-	
-	public String getId()
-	{
+	public String getId(){
 		return this.userId;
 	}
 	
@@ -154,8 +149,7 @@ public class User {
 		catch(Exception e){ System.out.println(e);}
 	}
 	
-	public void updateCard(String cardType, String cardNum)
-	{
+	public void updateCard(String cardType, String cardNum){
 		this.cardType = cardType;
 		this.cardNum = cardNum;
 		try	{
@@ -166,7 +160,6 @@ public class User {
 			con.close();
 		}
 		catch(Exception e){ System.out.println(e); }
-		
 	}
 		
 	public void setAddress(String address, String city, String state, int zip){
@@ -178,45 +171,165 @@ public class User {
 
 	public void generateInvoice(int orderNum, String firstName, String lastName, String address, String city, String state, int zip, boolean isNewAddress){
 		System.out.println("       Invoice for Order no. " + orderNum);
-		System.out.printf("%-30s %-30s", "Shipping Address", "Billing Adress");
+		System.out.printf("%-30s %-30s %n", "Shipping Address", "Billing Adress");
 		if(isNewAddress){
-			System.out.printf("%-30s %-30s", "Name: " + firstName + " " + lastName, "Name: " + this.firstName + this.lastName);
-			System.out.printf("%-30s %-30s", "Address: " + address, "Address: " + this.address);
-			System.out.printf("%-30s %-30s", city, this.city);
-			System.out.printf("%-30s %-30s", state + " " + zip, this.state + " " + this.zip);
+			System.out.printf("%-30s %-30s %n", "Name: " + firstName + " " + lastName, "Name: " + this.firstName + this.lastName);
+			System.out.printf("%-30s %-30s %n", "Address: " + address, "Address: " + this.address);
+			System.out.printf("%-30s %-30s %n", city, this.city);
+			System.out.printf("%-30s %-30s %n", state + " " + zip, this.state + " " + this.zip);
 		}
 		else{
-			System.out.printf("%-30s %-30s", "Name: " + this.firstName + " " + this.lastName, "Name: " + this.firstName + this.lastName);
-			System.out.printf("%-30s %-30s", "Address: " + this.address, "Address: " + this.address);
-			System.out.printf("%-30s %-30s", this.city, this.city);
-			System.out.printf("%-30s %-30s", this.state + " " + this.zip, this.state + " " + this.zip);
+			System.out.printf("%-30s %-30s %n", "Name: " + this.firstName + " " + this.lastName, "Name: " + this.firstName + this.lastName);
+			System.out.printf("%-30s %-30s %n", "Address: " + this.address, "Address: " + this.address);
+			System.out.printf("%-30s %-30s %n", this.city, this.city);
+			System.out.printf("%-30s %-30s %n", this.state + " " + this.zip, this.state + " " + this.zip);
 		}
-		showCartContents();
 	}
 	
 	//insert to ORDER table
-	public void insertOrder(int orderNum, String address, String city, String state, int zip){
+	public int insertOrder(String address, String city, String state, int zip, boolean isNewAddress){
 		try{
+			int orderNum = 1;
 			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("INSERT INTO ORDER VALUES(?,?,?,?,?,?,?,?)");
+			PreparedStatement stmt = con.prepareStatement("INSERT INTO ORDERS VALUES(?,?,?,?,?,?,?,?)");
+			PreparedStatement stmt2 = con.prepareStatement("SELECT MAX(ONO) FROM ORDERS");
+			ResultSet rs = stmt2.executeQuery();
+			if(rs.next()){
+				orderNum = rs.getInt(1) + 1;
+			}
+			stmt.setString(1, this.userId);
+			stmt.setInt(2, orderNum);
+			stmt.setDate(3, getDate());
+			stmt.setDate(4, getDate());
+			if(isNewAddress){
+				stmt.setString(5, address);
+				stmt.setString(6, city);
+				stmt.setString(7, state);
+				stmt.setInt(8, zip);
+			}
+			else{
+				stmt.setString(5, this.address);
+				stmt.setString(6, this.city);
+				stmt.setString(7, this.state);
+				stmt.setInt(8, this.zip);
+			}
+			stmt.executeUpdate();
+			con.close();
+			//inserting to order detail table
+			insertOdetails(orderNum);
+			//delete items from cart
+			return orderNum;
 		}
-		catch(Exception e){	System.out.println(e);}
+		catch(Exception e){	System.out.println(e); return 0;}
+	}
+	
+	//get current date
+	public static java.sql.Date getDate(){
+		java.util.Date today = new java.util.Date();
+		return new java.sql.Date(today.getTime());
 	}
 	
 	//insert to ODETAILS table
-	public void insertOdetails()
-	{
+	public void insertOdetails(int orderNum){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("SELECT c.ISBN, c.QTY, b.PRICE from CART c, BOOKS b"
+														+ " WHERE b.ISBN = c.ISBN AND USERID = '" + this.userId + "'");
+			PreparedStatement insert = con.prepareStatement("INSERT INTO ODETAILS VALUES(?,?,?,?)");
+			ResultSet rs = stmt.executeQuery();
+			double total = 0;
+			while(rs.next()){
+				insert.setInt(1, orderNum);
+				insert.setString(2, rs.getString(1));//isbn
+				insert.setInt(3, rs.getInt(2));//quantity
+				total = (rs.getInt(2)) * (rs.getDouble(3));
+				insert.setDouble(4, total);//price
+				insert.executeUpdate();
+			}
+			con.close();
+		}
+		catch(Exception e){System.out.println(e);}
+	}
+	
+	public void showOrder(int orderNum){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("SELECT o.ISBN, b.TITLE, o.PRICE, o.QTY FROM ODTAILS o, BOOKS b"
+														+ " WHERE ONO = " + orderNum);
+			ResultSet rs = stmt.executeQuery();
+			double total = 0, allTotal = 0;
+			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------"
+					+ "--------------------------------------");
+			System.out.printf("%-12s %-165s %-5s %-3s %-7s", "ISBN", "Title", "$", "Qty", "Total");
+			System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------------"
+					+ "--------------------------------------");
+			while(rs.next()){
+				System.out.printf("%-12s",  rs.getString(1)); //ISBN
+				System.out.printf("%-165s", rs.getString(2) ); //TITLE
+				System.out.printf("%5.2f",   rs.getDouble(3)); //PRICE
+				System.out.printf("%5d",   rs.getInt(4)); //QTY
+				total = (rs.getDouble(3)) * (rs.getInt(4));
+				System.out.printf("%8.2f", total); //Total
+				System.out.println(); //new line
+				allTotal = allTotal + total;
+			}
+			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------"
+					+ "--------------------------------------");
+		}
+		catch(Exception e){}
+	}
+	
+	//after check out, clear out cart
+	public void deleteCart(){
 		
+	}
+	
+	public void addToCart(String isbn, int quantity){
+		try {
+			   Connection con = getConnection();
+			   PreparedStatement stmt = con.prepareStatement("INSERT INTO CART(USERID, ISBN, QTY) VALUES(?,?,?)");
+			   stmt.setString(1, this.userId);
+			   stmt.setString(2, isbn);
+			   stmt.setInt(3, quantity);
+			   stmt.executeUpdate();
+			   con.close();
+			   System.out.println("You have added an item!");
+			  }
+		catch(Exception e) {  System.out.println(e); }
+	}
+	
+	public void deleteFromCart(String isbn){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("DELETE FROM CART"
+												+ " WHERE USERID ='" + this.userId +"' AND ISBN = '" + isbn + "'");
+			stmt.executeUpdate();
+			con.close();
+			System.out.println("Item was deleted from your cart");
+		}
+		catch(Exception e){System.out.println(e);}
+	}
+	
+	public void editCart(String isbn, int newQty){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("UPDATE CART SET QTY = " + newQty +  
+					" WHERE USERID = '" + this.userId + "' AND ISBN = '" + isbn + "'");
+			stmt.executeUpdate();
+			con.close();
+			System.out.println("Edit Item Completed");
+		}
+		catch(Exception e){System.out.println(e);}
 	}
 	
 	//showing contents of shopping cart
 	public void showCartContents(){
 		try{
 			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("SELECT c.ISBN, b.TITLE, b.PRICE, c.QTY FROM CART c, BOOKS b WHERE c.ISBN = b.ISBN AND USERID = ?");
+			PreparedStatement stmt = con.prepareStatement("SELECT c.ISBN, b.TITLE, b.PRICE, c.QTY FROM CART c, BOOKS b "
+															+ "WHERE c.ISBN = b.ISBN AND USERID = ?");
 			stmt.setString(1, this.userId);
 			ResultSet rs = stmt.executeQuery();
-			System.out.println("Current Cart Contents:");
 			System.out.printf("%-12s %-165s %-5s %-3s %-7s", "ISBN", "Title", "$", "Qty", "Total");
 			System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------------"
 					+ "--------------------------------------");
