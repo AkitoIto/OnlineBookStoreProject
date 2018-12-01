@@ -170,7 +170,7 @@ public class User {
 	}
 
 	public void generateInvoice(int orderNum, String firstName, String lastName, String address, String city, String state, int zip, boolean isNewAddress){
-		System.out.println("       Invoice for Order no. " + orderNum);
+		System.out.println("\n       Invoice for Order no. " + orderNum);
 		System.out.printf("%-30s %-30s %n", "Shipping Address", "Billing Adress");
 		if(isNewAddress){
 			System.out.printf("%-30s %-30s %n", "Name: " + firstName + " " + lastName, "Name: " + this.firstName + this.lastName);
@@ -179,7 +179,7 @@ public class User {
 			System.out.printf("%-30s %-30s %n", state + " " + zip, this.state + " " + this.zip);
 		}
 		else{
-			System.out.printf("%-30s %-30s %n", "Name: " + this.firstName + " " + this.lastName, "Name: " + this.firstName + this.lastName);
+			System.out.printf("%-30s %-30s %n", "Name: " + this.firstName + " " + this.lastName, "Name: " + this.firstName + " " + this.lastName);
 			System.out.printf("%-30s %-30s %n", "Address: " + this.address, "Address: " + this.address);
 			System.out.printf("%-30s %-30s %n", this.city, this.city);
 			System.out.printf("%-30s %-30s %n", this.state + " " + this.zip, this.state + " " + this.zip);
@@ -251,11 +251,29 @@ public class User {
 		catch(Exception e){System.out.println(e);}
 	}
 	
+	public void showOrderStatus(){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("SELECT ONO, RECEIVED, SHIPPED FROM ORDERS WHERE USERID = '" + this.userId + "'");
+			ResultSet rs = stmt.executeQuery();
+			System.out.println("\nOrder(s) placed by " + this.firstName + " " + this.lastName);
+			System.out.println("---------------------------------------------------------------------");
+			System.out.printf("%-7s %-15s %-15s %n", "ORDER NO", "RECEIVED DATE", "SHIPPED DATE");
+			System.out.println("---------------------------------------------------------------------");
+			while(rs.next()){
+				System.out.printf("%-10s %-15s %-15s %n", rs.getInt(1), rs.getDate(2), rs.getDate(3));
+			}
+			System.out.println("---------------------------------------------------------------------");
+			con.close();
+		}
+		catch(Exception e){System.out.println(e);}
+	}
+	
 	public void showOrder(int orderNum){
 		try{
 			Connection con = getConnection();
-			PreparedStatement stmt = con.prepareStatement("SELECT o.ISBN, b.TITLE, o.PRICE, o.QTY FROM ODTAILS o, BOOKS b"
-														+ " WHERE ONO = " + orderNum);
+			PreparedStatement stmt = con.prepareStatement("SELECT o.ISBN, b.TITLE, o.PRICE, o.QTY FROM ODETAILS o, BOOKS b"
+														+ " WHERE ONO = " + orderNum +  " AND o.ISBN = b.ISBN");
 			ResultSet rs = stmt.executeQuery();
 			double total = 0, allTotal = 0;
 			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------"
@@ -275,13 +293,23 @@ public class User {
 			}
 			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------"
 					+ "--------------------------------------");
+			System.out.print("Total =");
+			System.out.printf("%182s %1.2f %n", "$", allTotal);
+			con.close();
 		}
 		catch(Exception e){}
 	}
 	
 	//after check out, clear out cart
-	public void deleteCart(){
-		
+	public void clearCart(){
+		try{
+			Connection con = getConnection();
+			PreparedStatement stmt = con.prepareStatement("DELETE FROM CART WHERE USERID = '" + this.userId + "'");
+			stmt.executeUpdate();
+			con.close();
+		}
+		catch(Exception e){
+		}
 	}
 	
 	public void addToCart(String isbn, int quantity){
@@ -330,6 +358,7 @@ public class User {
 															+ "WHERE c.ISBN = b.ISBN AND USERID = ?");
 			stmt.setString(1, this.userId);
 			ResultSet rs = stmt.executeQuery();
+			
 			System.out.printf("%-12s %-165s %-5s %-3s %-7s", "ISBN", "Title", "$", "Qty", "Total");
 			System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------------"
 					+ "--------------------------------------");
@@ -350,9 +379,9 @@ public class User {
 			System.out.print("Total =");
 			System.out.printf("%182s %1.2f", "$", allTotal);
 			System.out.println();
-			con.close();
+
 		}
-		catch(Exception e){	System.out.println(e); }
+		catch(Exception e){	System.out.println(e);}
 	}
 	
 	//getting connection to oracle database

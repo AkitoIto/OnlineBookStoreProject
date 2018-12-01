@@ -83,7 +83,7 @@ public class BookStoreSystem {
 					}while(!isValid);
 					do{
 						System.out.print("Enter Password: ");	pwd = input.nextLine(); 
-						System.out.print("Confirm Password" ); pwd2 = input.nextLine();
+						System.out.print("Confirm Password: " ); pwd2 = input.nextLine();
 						isValid = confirmPass(pwd, pwd2);
 					}while(!isValid);
 					System.out.println("Do you wish to store credit card information? (Y/N): "); creditMenu = input.nextLine();
@@ -140,11 +140,13 @@ public class BookStoreSystem {
 				      		 viewEditShoppingCart(user);
 				      		break;
 				      	case 4:
+				      		checkOrderStatus(user);
 				      		break;
 				      	case 5: 
 				      		 checkOut(user);
 				      		break;
 				      	case 6:
+				      		oneClick(user);
 				      		break;
 				      	case 7:
 				      		editInfo(user);
@@ -246,6 +248,14 @@ public class BookStoreSystem {
 		       } 
 	  }
 			
+	 public static boolean isIsbnValid(String isbn){
+		 if(isbn.length() < 9 || isbn.length() > 12){
+			 System.out.println("ISBN has to be 9 to 13 characters.");
+			 return false;
+		 }
+		 else
+			 return true;
+	 }
 	//browse by subject menu
 	public static void browse(String userId, User user){
 		Scanner input = new Scanner(System.in);
@@ -397,33 +407,49 @@ public class BookStoreSystem {
 	//view or edit shopping cart menu
 	public static void viewEditShoppingCart(User user){
 		String menu = "";
+		boolean isValid= false;
+		String isbn = "";
+		int newQty = 0;
 	 do{
 		//showing contents in shopping cart
 		System.out.println("Current cart contents: ");
 		user.showCartContents();
-		
 		Scanner input = new Scanner(System.in);
 		System.out.println("Enter d to delete item");
 		System.out.println("e to edit cart or ");
 		System.out.print("q to go back to Menu: "); menu = input.nextLine();
-		
-		
 		//delete or edit cart
 		if(!menu.equals("q")){
-				System.out.print("Enter ISBN of item: "); String isbn = input.nextLine();
+			   //get ISBN
+		      do{
+				System.out.print("Enter ISBN of item: "); isbn = input.nextLine();
+				isValid = isIsbnValid(isbn);
+			  }while(!isValid);
+			   //Delte item
 				if(menu.equals("d")){
 					user.deleteFromCart(isbn);
 				}
+				//edit quantity
 				else if(menu.equals("e")){
-					System.out.print("Enter new quantitiy: "); int newQty = input.nextInt(); 
-					user.editCart(isbn, newQty);
+					System.out.print("Enter new quantitiy: "); newQty = input.nextInt();
+					input.nextLine();
+				user.editCart(isbn, newQty);
 				}
-			}
+		}//outer if
 	  }while(!menu.equals("q"));
+
 	}
 	
 	//check order status menu
 	public static void checkOrderStatus(User user){
+		user.showOrderStatus();
+		Scanner input = new Scanner(System.in);
+		System.out.print("Enter the order number to display its details or (q) to quit: "); String orderNum = input.nextLine();
+		if(!orderNum.equals("q")){
+			int orderNo = Integer.parseInt(orderNum);
+			System.out.println("\nDetails for Order no." + orderNo);
+			user.showOrder(orderNo);
+		}
 		
 	}
 	
@@ -483,6 +509,7 @@ public class BookStoreSystem {
 			int orderNum = user.insertOrder(street, city, state, zip, isNewAddress);
 			user.generateInvoice(orderNum, firstName, lastName, street, city, state, zip, isNewAddress);
 			user.showOrder(orderNum);
+			user.clearCart();
 			System.out.println("Please enter to go back to menu");
 			input.nextLine();
 		}//end if
@@ -490,7 +517,14 @@ public class BookStoreSystem {
 	
 	//one click order menu
 	public static void oneClick(User user){
-		
+		boolean isNewAddress = false;
+		Scanner input = new Scanner(System.in);
+		int orderNum = user.insertOrder(null, null, null, 0, isNewAddress);
+		user.generateInvoice(orderNum, null, null, null, null, null, 0, isNewAddress);
+		user.showOrder(orderNum);
+		user.clearCart();
+		System.out.println("Please enter to go back to menu");
+		input.nextLine();
 	}
 	
 	//view/edit personal information menu
