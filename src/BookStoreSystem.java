@@ -32,7 +32,7 @@ public class BookStoreSystem {
 				if(loginMenu.equals("1")){
 						
 						do{
-							System.out.println("Welcome to the Online Book Store"); 
+							System.out.println("\nWelcome to the Online Book Store"); 
 							System.out.println("         Login page");
 							System.out.print("Enter User ID: ");
 							userId = input.nextLine(); 
@@ -67,15 +67,21 @@ public class BookStoreSystem {
 				
 				//new member registration
 				else if(loginMenu.equals("2")){
-					System.out.println("Welcome to the Online Book Store"); 
+					System.out.println("\nWelcome to the Online Book Store"); 
 					System.out.println("         New Member Registration");
 					System.out.print("Enter First Name: "); firstName = input.nextLine(); 
 					System.out.print("Enter Last Name: ");  lastName = input.nextLine(); 
 					System.out.print("Enter Street: "); address = input.nextLine(); 
 					System.out.print("Enter City: "); 	city = input.nextLine(); 
 					System.out.print("Enter State: ");	state = input.nextLine();
-					System.out.print("Enter Zip code: "); zip = input.nextInt(); input.nextLine();
-					System.out.print("Enter Phone Number: "); phone = input.nextLine(); 
+					do{
+						System.out.print("Enter Zip code: "); zip = input.nextInt(); input.nextLine();
+						isValid = isZipValid(zip);
+					}while(!isValid);
+					do{
+						System.out.print("Enter Phone Number: "); phone = input.nextLine(); 
+						isValid = isPhoneValid(phone);
+					}while(!isValid);
 					System.out.print("Enter Email: ");	email = input.nextLine(); 
 					do{
 						System.out.print("Enter User ID: "); userId = input.nextLine(); 
@@ -111,7 +117,7 @@ public class BookStoreSystem {
 				{
 				//if login successful
 				//Member Menu
-					System.out.println("**********************************************************************");
+					System.out.println("\n**********************************************************************");
 					System.out.println("***                                                                ***");
 					System.out.println("***              Welcome to the Online Book Store                  ***");
 					System.out.println("***                 Member Menu                                    ***");
@@ -152,7 +158,7 @@ public class BookStoreSystem {
 				      		editInfo(user);
 				      		break;
 				      	case 8:
-				      		System.out.println("Thank you for using our online book store!!");
+				      		System.out.println("Thank you for using our online book store.\n");
 				      		break;
 				    }//end switch
 				}while(menu != 8);
@@ -225,6 +231,25 @@ public class BookStoreSystem {
 		}
 	}
 	
+	public static boolean isZipValid(int zip){
+		int length = String.valueOf(zip).length();
+		if(length == 5)
+			return true;
+		else{
+			System.out.println("Zip code has to be 5 digits, please try again.");
+			return false;
+		}
+	}
+	
+	public static boolean isPhoneValid(String phone){
+		if(phone.length() == 11)
+			return true;
+		else{
+			System.out.println("Phone number has to be 9 digits, please try again.");
+			return false;
+		}
+	}
+	
 	//checks if entered card information is valid of not
 	 public static boolean isCardValid(String cardType, String cardNum) {
 			if(cardType.equals("amex") || cardType.equals("visa")){
@@ -249,18 +274,20 @@ public class BookStoreSystem {
 	  }
 			
 	 public static boolean isIsbnValid(String isbn){
-		 if(isbn.length() < 9 || isbn.length() > 12){
+		 if(isbn.length() < 9 || isbn.length() > 13){
 			 System.out.println("ISBN has to be 9 to 13 characters.");
 			 return false;
 		 }
 		 else
 			 return true;
 	 }
+	 
 	//browse by subject menu
 	public static void browse(String userId, User user){
 		Scanner input = new Scanner(System.in);
 		String option = "3";
 		String[] subject = new String[30];
+		boolean isValid = false;
 		
 	  do{
 	   //listing subjects
@@ -587,6 +614,7 @@ public class BookStoreSystem {
 				  }while(!isValid);
 				user.updateCard(cardType, cardNum);
 			}
+			System.out.println("\nYour account infomration is updated.");
 		  }//end outer if
 		}//end while
 	}//end of method

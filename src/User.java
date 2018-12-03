@@ -1,5 +1,6 @@
 import java.util.*;
 import java.sql.*;
+import java.sql.Date;
 import java.time.*;
 
 public class User {
@@ -200,7 +201,7 @@ public class User {
 			stmt.setString(1, this.userId);
 			stmt.setInt(2, orderNum);
 			stmt.setDate(3, getDate());
-			stmt.setDate(4, getDate());
+			stmt.setDate(4, getShippedDate());
 			if(isNewAddress){
 				stmt.setString(5, address);
 				stmt.setString(6, city);
@@ -227,6 +228,13 @@ public class User {
 	public static java.sql.Date getDate(){
 		java.util.Date today = new java.util.Date();
 		return new java.sql.Date(today.getTime());
+	}
+	
+	public static java.sql.Date getShippedDate(){
+		Calendar c = Calendar.getInstance();
+		c.add(c.DAY_OF_YEAR, 4);
+		java.util.Date shippedDate = c.getTime();
+		return new java.sql.Date(shippedDate.getTime());
 	}
 	
 	//insert to ODETAILS table
